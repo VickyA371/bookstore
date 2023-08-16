@@ -1,28 +1,15 @@
-import * as React from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import React from 'react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
-// ** Screens
-import HomeScreen from './src/screens/HomeScreen';
-import BookDetailsScreen from './src/screens/BookDetailsScreen';
-import SearchScreen from './src/screens/SearchBooks';
+// ** Navigation
+import RootNavigation from './src/navigation';
 
-// ** MISC
-import constants from './src/constants';
-
-const Stack = createNativeStackNavigator();
-
-export default function App() {
+const App = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name={constants.routes.home} component={HomeScreen} />
-        <Stack.Screen
-          name={constants.routes.bookDetails}
-          component={BookDetailsScreen}
-        />
-        <Stack.Screen name={constants.routes.search} component={SearchScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <RootNavigation />
+    </SafeAreaProvider>
   );
-}
+};
+
+export default App;

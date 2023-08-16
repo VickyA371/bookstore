@@ -1,17 +1,16 @@
 import React from 'react';
-import {
-  FlatList,
-  Image,
-  ListRenderItemInfo,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import {FlatList, ListRenderItemInfo, StyleSheet} from 'react-native';
 
+// ** Hooks
 import useBooks from '../../hooks/useBooks';
 
+// ** Components
+import Loader from '../../components/Loader';
+import BookItemRow from '../../components/BookItemRow';
+
+// ** MISC
 import {LOG_ENTRY} from '../../services/books/types';
-import {getBookCover} from '../../utils/misc';
+import colors from '../../constants/colors';
 
 const HomeScreen = () => {
   const {books} = useBooks();
@@ -21,46 +20,12 @@ const HomeScreen = () => {
   ) => {
     try {
       return (
-        <View
-          style={{
-            borderWidth: 1,
-            borderRadius: 10,
-            padding: 10,
-            marginTop: 10,
-            flexDirection: 'row',
-          }}>
-          <Image
-            style={{height: 100, width: 75}}
-            resizeMode={'contain'}
-            source={{uri: getBookCover(bookItemObj.item.work.cover_id)}}
-          />
-          <View style={{flex: 1, marginLeft: 15}}>
-            <Text>{bookItemObj.item.work.title}</Text>
-            {bookItemObj.item.work.author_names &&
-            Array.isArray(bookItemObj.item.work.author_names) &&
-            bookItemObj.item.work.author_names.length ? (
-              <Text>
-                By{' '}
-                {bookItemObj.item.work.author_names.reduce(
-                  (
-                    prevVal: string,
-                    currVal: string,
-                    index: number,
-                    array: string[],
-                  ) =>
-                    prevVal +
-                    currVal +
-                    (index === array.length - 2
-                      ? ' and '
-                      : index === array.length - 1
-                      ? ''
-                      : ', '),
-                  '',
-                )}
-              </Text>
-            ) : null}
-          </View>
-        </View>
+        <BookItemRow
+          coverId={bookItemObj.item.work.cover_id}
+          title={bookItemObj.item.work.title}
+          authorNames={bookItemObj.item.work.author_names}
+          publishYear={bookItemObj.item.work.first_publish_year}
+        />
       );
     } catch (err: any) {
       console.log(
@@ -71,8 +36,10 @@ const HomeScreen = () => {
     }
   };
 
-  const keyExtractorHandler = (item: LOG_ENTRY, index: number) =>
+  const keyExtractorHandler = (_item: LOG_ENTRY, index: number) =>
     index.toString();
+
+  const renderListEmptyComponent = () => <Loader />;
 
   return (
     <FlatList<LOG_ENTRY>
@@ -80,13 +47,17 @@ const HomeScreen = () => {
       renderItem={renderBookItemHandler}
       keyExtractor={keyExtractorHandler}
       contentContainerStyle={styles.contentContainer}
+      ListEmptyComponent={renderListEmptyComponent}
     />
   );
 };
 
 const styles = StyleSheet.create({
   contentContainer: {
+    flex: 1,
     paddingHorizontal: 15,
+    backgroundColor: colors.white,
+    paddingVertical: 10,
   },
 });
 

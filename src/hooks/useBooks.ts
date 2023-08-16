@@ -9,16 +9,19 @@ import {LOG_ENTRY} from '../services/books/types';
 
 const useBooks = () => {
   const [books, setBooks] = useState<LOG_ENTRY[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const initHandler = async () => {
     try {
       const resp = await getBooks();
+      setLoading(false);
       setBooks(resp.data.reading_log_entries);
     } catch (error: any) {
+      setLoading(false);
       if (axios.isAxiosError(error)) {
-        console.log('error.response?.data : ', error);
+        console.log('[useBooks - initHandler] error.response?.data : ', error);
       } else {
-        console.log('unexpected error: ', error);
+        console.log('[useBooks - initHandler] unexpected error: ', error);
       }
     }
   };
@@ -28,6 +31,7 @@ const useBooks = () => {
   }, []);
 
   return {
+    loading,
     books,
   };
 };
