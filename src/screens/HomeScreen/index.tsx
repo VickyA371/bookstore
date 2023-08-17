@@ -1,19 +1,32 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {FlatList, ListRenderItemInfo, StyleSheet} from 'react-native';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
 
 // ** Hooks
 import useBooks from '../../hooks/useBooks';
 
 // ** Components
 import Loader from '../../components/Loader';
+import SearchBar from '../../components/SearchBar';
 import BookItemRow from '../../components/BookItemRow';
 
-// ** MISC
+// ** Types
 import {LOG_ENTRY} from '../../services/books/types';
+import {RootNavigationType} from '../../navigation/types';
+
+// ** MISC
 import colors from '../../constants/colors';
+import {keyExtractorHandler} from '../../utils/misc';
 
 const HomeScreen = () => {
-  const {books} = useBooks();
+  const navigation = useNavigation<NavigationProp<RootNavigationType>>();
+  const {books, booksFromSearch, searchBooks} = useBooks();
+
+  const onBookItemPressHandler = (coverId: string) => {
+    navigation.navigate('bookDetails', {
+      coverId,
+    });
+  };
 
   const renderBookItemHandler = (
     bookItemObj: ListRenderItemInfo<LOG_ENTRY>,
@@ -25,6 +38,10 @@ const HomeScreen = () => {
           title={bookItemObj.item.work.title}
           authorNames={bookItemObj.item.work.author_names}
           publishYear={bookItemObj.item.work.first_publish_year}
+          onPress={onBookItemPressHandler.bind(
+            null,
+            bookItemObj.item.work.cover_edition_key,
+          )}
         />
       );
     } catch (err: any) {
@@ -36,28 +53,39 @@ const HomeScreen = () => {
     }
   };
 
-  const keyExtractorHandler = (_item: LOG_ENTRY, index: number) =>
-    index.toString();
-
   const renderListEmptyComponent = () => <Loader />;
+
+  const renderListHeaderComponent = () => {
+    return <SearchBar onChangeText={searchBooks} />;
+  };
+
+  const data = useMemo(
+    () => (booksFromSearch.length ? booksFromSearch : books),
+    [books, booksFromSearch],
+  );
 
   return (
     <FlatList<LOG_ENTRY>
-      data={books}
+      data={data}
       renderItem={renderBookItemHandler}
       keyExtractor={keyExtractorHandler}
+      style={styles.listStyle}
       contentContainerStyle={styles.contentContainer}
       ListEmptyComponent={renderListEmptyComponent}
+      ListHeaderComponent={renderListHeaderComponent}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  contentContainer: {
+  listStyle: {
     flex: 1,
+  },
+  contentContainer: {
+    // flex: 1,
     paddingHorizontal: 15,
     backgroundColor: colors.white,
-    paddingVertical: 10,
+    paddingBottom: 10,
   },
 });
 

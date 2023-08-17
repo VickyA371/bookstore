@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 
 // ** Services
@@ -9,9 +9,11 @@ import {LOG_ENTRY} from '../services/books/types';
 
 const useBooks = () => {
   const [books, setBooks] = useState<LOG_ENTRY[]>([]);
+  const [booksFromSearch, _setBooksFromSearch] = useState<LOG_ENTRY[]>([]);
+
   const [loading, setLoading] = useState(true);
 
-  const initHandler = async () => {
+  const initHandler = useCallback(async () => {
     try {
       const resp = await getBooks();
       setLoading(false);
@@ -24,15 +26,22 @@ const useBooks = () => {
         console.log('[useBooks - initHandler] unexpected error: ', error);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     initHandler();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const searchBooks = useCallback(async (searchQuery: string) => {
+    console.log('searchQuery : ', searchQuery);
   }, []);
 
   return {
     loading,
     books,
+    booksFromSearch,
+    searchBooks,
   };
 };
 

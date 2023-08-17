@@ -8,30 +8,30 @@ import BookDetailsScreen from '../screens/BookDetailsScreen';
 import SearchScreen from '../screens/SearchBooks';
 
 // ** MISC
-import constants from '../constants';
+import {RootNavigationType} from './types';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootNavigationType>();
 
 const RootNavigation = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
-          name={constants.routes.home}
+          name={'home'}
           options={{
-            title: 'Home',
+            title: 'Books',
           }}
           component={HomeScreen}
         />
         <Stack.Screen
-          name={constants.routes.bookDetails}
+          name={'bookDetails'}
           component={BookDetailsScreen}
           options={{
             title: 'Book Details',
           }}
         />
         <Stack.Screen
-          name={constants.routes.search}
+          name={'search'}
           component={SearchScreen}
           options={{
             title: 'Search',

@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
+import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
 
 // ** MISC
 import {getBookCover} from '../utils/misc';
@@ -10,10 +10,11 @@ type BookItemRowPropTypes = {
   title: string;
   authorNames: string[];
   publishYear: number;
+  onPress: () => void;
 };
 
 const BookItemRow = (props: BookItemRowPropTypes) => {
-  const {coverId, title, authorNames, publishYear} = props;
+  const {coverId, title, authorNames, publishYear, onPress} = props;
 
   const imgSource = useMemo(() => ({uri: getBookCover(coverId)}), [coverId]);
 
@@ -42,14 +43,14 @@ const BookItemRow = (props: BookItemRowPropTypes) => {
   }, [authorNames]);
 
   return (
-    <View style={styles.container}>
+    <Pressable onPress={onPress} style={styles.container}>
       <Image style={styles.img} resizeMode={'contain'} source={imgSource} />
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{title}</Text>
         {renderAuthorName}
         <Text style={styles.author}>Published in {publishYear}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 };
 
