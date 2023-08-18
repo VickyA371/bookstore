@@ -1,48 +1,124 @@
-import React, {useCallback, useState} from 'react';
-import {StyleSheet, TextInput, TextInputProps} from 'react-native';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useState,
+} from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+} from 'react-native';
+
 import colors from '../constants/colors';
 
 type SearchBarPropTypes = {
   initialSearchValue?: string;
-  onChangeText: (val: string) => void;
+  onUpdate: (val: string, searchByTitle: boolean) => void;
 };
 
-const SearchBar = (props: SearchBarPropTypes & TextInputProps) => {
-  const {initialSearchValue, onChangeText} = props;
-  const [searchVal, setSearchVal] = useState(initialSearchValue ?? '');
-
-  const onChangeHandler = useCallback(
-    (enteredText: string) => {
-      setSearchVal(enteredText);
-      onChangeText(enteredText);
-    },
-    [onChangeText],
-  );
-
-  return (
-    <TextInput
-      placeholder="Search Book"
-      returnKeyType="search"
-      blurOnSubmit
-      placeholderTextColor={colors.black}
-      autoCapitalize="none"
-      autoCorrect={false}
-      {...props}
-      style={[styles.inputDefault, props.style]}
-      value={searchVal}
-      onChangeText={onChangeHandler}
-    />
-  );
+export type RefType = {
+  searchQuery: string;
+  loading?: boolean;
+  searchByTitle: boolean;
+  setLoading: (loading: boolean) => void;
 };
+
+const SearchBar = forwardRef(
+  (
+    props: TextInputProps & SearchBarPropTypes,
+    ref: React.ForwardedRef<RefType>,
+  ) => {
+    const {initialSearchValue, onUpdate} = props;
+
+    const [isLoading, setLoading] = useState(true);
+
+    const [searchByTitle, setSearchByTitle] = useState(true);
+    const [searchVal, setSearchVal] = useState(initialSearchValue ?? '');
+
+    const initHandler = useCallback(
+      (): RefType => ({
+        searchQuery: searchVal,
+        searchByTitle,
+        setLoading: (loadingState: boolean) => {
+          setLoading(loadingState);
+        },
+      }),
+      [searchByTitle, searchVal],
+    );
+
+    useImperativeHandle(ref, initHandler, [initHandler]);
+
+    const onChangeHandler = useCallback(
+      (enteredText: string) => {
+        setSearchVal(enteredText);
+        onUpdate(enteredText, searchByTitle);
+      },
+      [onUpdate, searchByTitle],
+    );
+
+    const toggleSearchBy = useCallback(() => {
+      setSearchByTitle(!searchByTitle);
+      onUpdate(searchVal, !searchByTitle);
+    }, [onUpdate, searchByTitle, searchVal]);
+
+    return (
+      <View style={styles.container}>
+        <TextInput
+          key="input"
+          placeholder="Search Book"
+          returnKeyType="search"
+          blurOnSubmit
+          placeholderTextColor={colors.black}
+          autoCapitalize="none"
+          autoCorrect={false}
+          {...props}
+          style={[styles.inputDefault, props.style]}
+          value={searchVal}
+          onChangeText={onChangeHandler}
+        />
+        {isLoading && <ActivityIndicator size={'small'} color={colors.black} />}
+        <Pressable
+          disabled={isLoading}
+          onPress={toggleSearchBy}
+          style={styles.btn}>
+          <Text style={styles.btnText}>{`By ${
+            searchByTitle ? 'Title' : 'Author'
+          }`}</Text>
+        </Pressable>
+      </View>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 15,
+    borderRadius: 10,
+    backgroundColor: colors.grey,
+  },
   inputDefault: {
+    flex: 1,
     fontSize: 14,
     backgroundColor: colors.grey,
     color: colors.black,
     padding: 15,
-    marginVertical: 15,
     borderRadius: 10,
+    marginRight: 5,
+  },
+  btn: {
+    width: 80,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  btnText: {
+    textAlign: 'center',
   },
 });
 

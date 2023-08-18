@@ -2,16 +2,17 @@ import {useCallback, useEffect, useState} from 'react';
 import axios from 'axios';
 
 // ** Services
-import {getBooks} from '../services/books';
+import {getBooks, searchBooksService} from '../services/books';
 
 // ** Types
-import {LOG_ENTRY} from '../services/books/types';
+import {LOG_ENTRY, SEARCH_DOC_TYPE} from '../services/books/types';
 
 const useBooks = () => {
   const [books, setBooks] = useState<LOG_ENTRY[]>([]);
-  const [booksFromSearch, _setBooksFromSearch] = useState<LOG_ENTRY[]>([]);
+  const [booksFromSearch, setBooksFromSearch] = useState<SEARCH_DOC_TYPE[]>([]);
 
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const initHandler = useCallback(async () => {
     try {
@@ -33,12 +34,31 @@ const useBooks = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const searchBooks = useCallback(async (searchQuery: string) => {
-    console.log('searchQuery : ', searchQuery);
-  }, []);
+  const searchBooks = useCallback(
+    async (searchQuery: string, searchByTitle = true) => {
+      try {
+        setSearchLoading(true);
+        const resp = await searchBooksService(searchQuery, searchByTitle);
+        setBooksFromSearch(resp.data.docs);
+        setSearchLoading(false);
+      } catch (error: any) {
+        setSearchLoading(false);
+        if (axios.isAxiosError(error)) {
+          console.log(
+            '[useBooks - searchBooks] error.response?.data : ',
+            error?.message,
+          );
+        } else {
+          console.log('[useBooks - searchBooks] unexpected error: ', error);
+        }
+      }
+    },
+    [],
+  );
 
   return {
     loading,
+    searchLoading,
     books,
     booksFromSearch,
     searchBooks,

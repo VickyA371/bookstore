@@ -14,6 +14,7 @@ export type LOG_ENTRY = {
   work: LOG_ENTRY_WORK;
   logged_edition: string;
   logged_date: string;
+  type: 'get';
 };
 
 export type GET_BOOKS_RESPONSE = {
@@ -85,3 +86,22 @@ export enum BOOK_COVER_RESOLUTION {
   medium = 'M',
   large = 'L',
 }
+
+export type SEARCH_DOC_TYPE = {
+  key: string;
+  title: string;
+  first_publish_year: number;
+  cover_i: number;
+  author_name: string[];
+  type: 'search';
+};
+
+export type GET_SEARCH_RESULTS_RESPONSE_TYPE = {
+  numFound: number;
+  start: number;
+  numFoundExact: boolean;
+  docs: SEARCH_DOC_TYPE[];
+  num_found: number;
+  q: string;
+  offset?: number;
+};
