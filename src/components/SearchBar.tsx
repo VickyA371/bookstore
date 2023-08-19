@@ -60,6 +60,7 @@ const SearchBar = forwardRef(
       [searchByTitle, searchVal],
     );
 
+    // applying custom ref properties and methods
     useImperativeHandle(ref, initHandler, [initHandler]);
 
     const onChangeHandler = useCallback(

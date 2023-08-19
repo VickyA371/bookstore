@@ -15,7 +15,7 @@ const CardTextItem = (props: CardTextItemPropsType) => {
   return (
     <View
       style={{
-        width: (width * 50) / 100 - 45 / 2,
+        width: (width * 50) / 100 - 45 / 2, // calculations with paddings
         ...styles.container,
       }}>
       <Text style={styles.title}>{title}</Text>
