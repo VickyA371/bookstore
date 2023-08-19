@@ -1,6 +1,17 @@
 import React, {memo, useMemo} from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
-import Animated from 'react-native-reanimated';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import Animated, {
+  SharedValue,
+  interpolate,
+  useAnimatedStyle,
+  Extrapolate,
+} from 'react-native-reanimated';
 
 // ** MISC
 import {getBookCover} from '../utils/misc';
@@ -13,10 +24,23 @@ type BookItemRowPropTypes = {
   publishYear: number;
   onPress: () => void;
   workId: string;
+  index: number;
+  scrollY: SharedValue<number>;
 };
 
+const ROW_HEIGHT = 125;
+
 const BookItemRow = (props: BookItemRowPropTypes) => {
-  const {coverId, title, authorNames, publishYear, onPress, workId} = props;
+  const {
+    coverId,
+    title,
+    authorNames,
+    publishYear,
+    onPress,
+    workId,
+    index,
+    scrollY,
+  } = props;
 
   const imgSource = useMemo(() => ({uri: getBookCover(coverId)}), [coverId]);
 
@@ -28,14 +52,14 @@ const BookItemRow = (props: BookItemRowPropTypes) => {
             (
               prevVal: string,
               currVal: string,
-              index: number,
+              currIndex: number,
               array: string[],
             ) =>
               prevVal +
               currVal +
-              (index === array.length - 2
+              (currIndex === array.length - 2
                 ? ' and '
-                : index === array.length - 1
+                : currIndex === array.length - 1
                 ? ''
                 : ', '),
             '',
@@ -44,20 +68,53 @@ const BookItemRow = (props: BookItemRowPropTypes) => {
     ) : null;
   }, [authorNames]);
 
+  const {height} = useWindowDimensions(); // screen height
+
+  const startPosition = index * ROW_HEIGHT;
+  const containerHeight = height - 250;
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const pos1 = startPosition - containerHeight;
+    const pos2 = startPosition + ROW_HEIGHT - containerHeight;
+    return {
+      opacity: interpolate(scrollY.value, [pos1, pos2], [0, 1]),
+      transform: [
+        {
+          translateY: interpolate(
+            scrollY.value,
+            [pos1, pos2],
+            [-ROW_HEIGHT / 2, 0],
+            Extrapolate.CLAMP,
+          ),
+        },
+        {
+          scale: interpolate(
+            scrollY.value,
+            [pos1, pos2],
+            [0.8, 1],
+            Extrapolate.CLAMP,
+          ),
+        },
+      ],
+    };
+  });
+
   return (
-    <Pressable onPress={onPress} style={styles.container}>
-      <Animated.Image
-        style={styles.img}
-        resizeMode={'contain'}
-        source={imgSource}
-        sharedTransitionTag={`img-${workId}`}
-      />
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>{title}</Text>
-        {renderAuthorName}
-        <Text style={styles.author}>Published in {publishYear}</Text>
-      </View>
-    </Pressable>
+    <Animated.View style={animatedStyle}>
+      <Pressable style={styles.container} onPress={onPress}>
+        <Animated.Image
+          style={styles.img}
+          resizeMode={'contain'}
+          source={imgSource}
+          sharedTransitionTag={`img-${workId}`}
+        />
+        <View style={styles.contentContainer}>
+          <Text style={styles.title}>{title}</Text>
+          {renderAuthorName}
+          <Text style={styles.author}>Published in {publishYear}</Text>
+        </View>
+      </Pressable>
+    </Animated.View>
   );
 };
 

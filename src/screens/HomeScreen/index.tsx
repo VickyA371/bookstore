@@ -1,7 +1,13 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-import {FlatList, ListRenderItemInfo, StyleSheet} from 'react-native';
+import {ListRenderItemInfo, StyleSheet} from 'react-native';
 import {NavigationProp, useNavigation} from '@react-navigation/native';
 import debounce from 'lodash.debounce';
+import Animated, {
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 // ** Hooks
 import useBooks from '../../hooks/useBooks';
@@ -21,6 +27,8 @@ import {getRandomNumber, keyExtractorHandler} from '../../utils/misc';
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<RootNavigationType>>();
+
+  const scrollY = useSharedValue(0);
 
   const {books, searchLoading, searchBooks, initHandler} = useBooks();
 
@@ -85,6 +93,8 @@ const HomeScreen = () => {
                 : bookItemObj.item.first_publish_year
             }
             workId={workId}
+            index={bookItemObj.index}
+            scrollY={scrollY}
             onPress={onBookItemPressHandler.bind(null, workId, img)}
           />
         );
@@ -96,7 +106,7 @@ const HomeScreen = () => {
         return null;
       }
     },
-    [onBookItemPressHandler],
+    [onBookItemPressHandler, scrollY],
   );
 
   const renderListEmptyComponent = useCallback(() => <Loader />, []);
@@ -120,8 +130,14 @@ const HomeScreen = () => {
     );
   }, [onClearSearchResHandler, onSearch]);
 
+  const onScrollHandler = useAnimatedScrollHandler({
+    onScroll: e => {
+      scrollY.value = e.contentOffset.y;
+    },
+  });
+
   return (
-    <FlatList<LOG_ENTRY | SEARCH_DOC_TYPE>
+    <Animated.FlatList
       data={books}
       renderItem={renderBookItemHandler}
       keyExtractor={keyExtractorHandler}
@@ -130,6 +146,7 @@ const HomeScreen = () => {
       contentContainerStyle={styles.contentContainer}
       ListEmptyComponent={renderListEmptyComponent}
       ListHeaderComponent={renderListHeaderComponent}
+      onScroll={onScrollHandler}
     />
   );
 };
