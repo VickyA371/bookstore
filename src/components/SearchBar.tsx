@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   TextInputProps,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -20,6 +21,7 @@ import colors from '../constants/colors';
 type SearchBarPropTypes = {
   initialSearchValue?: string;
   onUpdate: (val: string, searchByTitle: boolean) => void;
+  onClear: () => void;
 };
 
 export type RefType = {
@@ -35,7 +37,7 @@ const SearchBar = forwardRef(
     props: TextInputProps & SearchBarPropTypes,
     ref: React.ForwardedRef<RefType>,
   ) => {
-    const {initialSearchValue, onUpdate} = props;
+    const {initialSearchValue, onUpdate, onClear} = props;
 
     const baseInputRef = useRef<TextInput>(null);
 
@@ -73,8 +75,21 @@ const SearchBar = forwardRef(
       onUpdate(searchVal, !searchByTitle);
     }, [onUpdate, searchByTitle, searchVal]);
 
+    const onClearSearchHandler = useCallback(() => {
+      setSearchVal('');
+      onClear();
+    }, [onClear]);
+
     return (
       <View style={styles.container}>
+        <Pressable
+          disabled={isLoading}
+          onPress={toggleSearchBy}
+          style={styles.btn}>
+          <Text style={styles.btnText}>{`By ${
+            searchByTitle ? 'Title' : 'Author'
+          }`}</Text>
+        </Pressable>
         <TextInput
           ref={baseInputRef}
           key="input"
@@ -89,15 +104,18 @@ const SearchBar = forwardRef(
           value={searchVal}
           onChangeText={onChangeHandler}
         />
-        {isLoading && <ActivityIndicator size={'small'} color={colors.black} />}
-        <Pressable
-          disabled={isLoading}
-          onPress={toggleSearchBy}
-          style={styles.btn}>
-          <Text style={styles.btnText}>{`By ${
-            searchByTitle ? 'Title' : 'Author'
-          }`}</Text>
-        </Pressable>
+        {!isLoading && searchVal ? (
+          <TouchableOpacity onPress={onClearSearchHandler}>
+            <Text style={styles.clearText}>{'clear'}</Text>
+          </TouchableOpacity>
+        ) : null}
+        {isLoading && (
+          <ActivityIndicator
+            size={'small'}
+            color={colors.black}
+            style={styles.loaderStyle}
+          />
+        )}
       </View>
     );
   },
@@ -127,6 +145,12 @@ const styles = StyleSheet.create({
   },
   btnText: {
     textAlign: 'center',
+  },
+  clearText: {
+    paddingHorizontal: 10,
+  },
+  loaderStyle: {
+    paddingRight: 10,
   },
 });
 

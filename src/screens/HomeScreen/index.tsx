@@ -17,12 +17,12 @@ import {RootNavigationType} from '../../navigation/types';
 
 // ** MISC
 import colors from '../../constants/colors';
-import {keyExtractorHandler} from '../../utils/misc';
+import {getRandomNumber, keyExtractorHandler} from '../../utils/misc';
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<RootNavigationType>>();
 
-  const {books, searchLoading, searchBooks} = useBooks();
+  const {books, searchLoading, searchBooks, initHandler} = useBooks();
 
   const searchBarRef = useRef<RefType>(null);
 
@@ -42,10 +42,11 @@ const HomeScreen = () => {
   );
 
   const onBookItemPressHandler = useCallback(
-    (coverId: string) => {
+    (coverId: string, img: number) => {
       searchBarRef.current?.blur?.();
       navigation.navigate('bookDetails', {
         coverId,
+        img,
       });
     },
     [navigation],
@@ -54,13 +55,20 @@ const HomeScreen = () => {
   const renderBookItemHandler = useCallback(
     (bookItemObj: ListRenderItemInfo<LOG_ENTRY | SEARCH_DOC_TYPE>) => {
       try {
+        const workId =
+          (bookItemObj.item instanceof LOG_ENTRY
+            ? bookItemObj.item.work.cover_edition_key
+            : bookItemObj.item.key.substring(
+                bookItemObj.item.key.lastIndexOf('/') + 1,
+              )) ?? getRandomNumber(1000, 9999);
+
+        const img =
+          bookItemObj.item instanceof LOG_ENTRY
+            ? bookItemObj.item.work.cover_id
+            : bookItemObj.item.cover_i;
         return (
           <BookItemRow
-            coverId={
-              bookItemObj.item instanceof LOG_ENTRY
-                ? bookItemObj.item.work.cover_id
-                : bookItemObj.item.cover_i
-            }
+            coverId={img}
             title={
               bookItemObj.item instanceof LOG_ENTRY
                 ? bookItemObj.item.work.title
@@ -76,14 +84,8 @@ const HomeScreen = () => {
                 ? bookItemObj.item.work.first_publish_year
                 : bookItemObj.item.first_publish_year
             }
-            onPress={onBookItemPressHandler.bind(
-              null,
-              bookItemObj.item instanceof LOG_ENTRY
-                ? bookItemObj.item.work.cover_edition_key
-                : bookItemObj.item.key.substring(
-                    bookItemObj.item.key.lastIndexOf('/') + 1,
-                  ),
-            )}
+            workId={workId}
+            onPress={onBookItemPressHandler.bind(null, workId, img)}
           />
         );
       } catch (err: any) {
@@ -103,9 +105,20 @@ const HomeScreen = () => {
     searchBarRef.current?.setLoading(searchLoading);
   }, [searchLoading]);
 
+  const onClearSearchResHandler = useCallback(() => {
+    initHandler();
+  }, [initHandler]);
+
   const renderListHeaderComponent = useCallback(() => {
-    return <SearchBar key="search" ref={searchBarRef} onUpdate={onSearch} />;
-  }, [onSearch]);
+    return (
+      <SearchBar
+        key="search"
+        ref={searchBarRef}
+        onUpdate={onSearch}
+        onClear={onClearSearchResHandler}
+      />
+    );
+  }, [onClearSearchResHandler, onSearch]);
 
   return (
     <FlatList<LOG_ENTRY | SEARCH_DOC_TYPE>
@@ -113,6 +126,7 @@ const HomeScreen = () => {
       renderItem={renderBookItemHandler}
       keyExtractor={keyExtractorHandler}
       style={styles.listStyle}
+      extraData={books}
       contentContainerStyle={styles.contentContainer}
       ListEmptyComponent={renderListEmptyComponent}
       ListHeaderComponent={renderListHeaderComponent}

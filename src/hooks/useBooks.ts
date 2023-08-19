@@ -73,6 +73,7 @@ const useBooks = () => {
     searchLoading,
     books,
     searchBooks,
+    initHandler,
   };
 };
 

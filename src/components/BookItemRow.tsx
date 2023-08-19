@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
-import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
+import React, {memo, useMemo} from 'react';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
+import Animated from 'react-native-reanimated';
 
 // ** MISC
 import {getBookCover} from '../utils/misc';
@@ -11,10 +12,11 @@ type BookItemRowPropTypes = {
   authorNames: string[];
   publishYear: number;
   onPress: () => void;
+  workId: string;
 };
 
 const BookItemRow = (props: BookItemRowPropTypes) => {
-  const {coverId, title, authorNames, publishYear, onPress} = props;
+  const {coverId, title, authorNames, publishYear, onPress, workId} = props;
 
   const imgSource = useMemo(() => ({uri: getBookCover(coverId)}), [coverId]);
 
@@ -44,7 +46,12 @@ const BookItemRow = (props: BookItemRowPropTypes) => {
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
-      <Image style={styles.img} resizeMode={'contain'} source={imgSource} />
+      <Animated.Image
+        style={styles.img}
+        resizeMode={'contain'}
+        source={imgSource}
+        sharedTransitionTag={`img-${workId}`}
+      />
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{title}</Text>
         {renderAuthorName}
@@ -89,4 +96,11 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BookItemRow;
+function arePropsEqual(
+  prevProps: BookItemRowPropTypes,
+  nextProps: BookItemRowPropTypes,
+) {
+  return prevProps.workId === nextProps.workId;
+}
+
+export default memo(BookItemRow, arePropsEqual);

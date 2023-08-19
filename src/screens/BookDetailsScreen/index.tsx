@@ -1,6 +1,7 @@
 import React from 'react';
-import {Image, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import Animated from 'react-native-reanimated';
 
 // ** Hooks
 import useBookDetails from '../../hooks/useBookDetails';
@@ -19,81 +20,84 @@ const BookDetailsScreen = (
 ) => {
   const {route} = props;
   const {params} = route;
-  const coverId = params.coverId;
+  const {coverId, img} = params;
 
   const {bookDetails, isLoading} = useBookDetails(coverId);
 
-  if (isLoading) {
-    return <Loader />;
-  }
-
   return (
     <ScrollView style={styles.container}>
-      <Image
-        source={{uri: getBookCover(bookDetails?.covers[0])}}
+      <Animated.Image
+        source={{uri: getBookCover(img)}}
         style={styles.cover}
         resizeMode="contain"
+        sharedTransitionTag={`img-${coverId}`}
       />
-      <View style={{paddingHorizontal: 15}}>
-        <Text style={styles.title}>{bookDetails?.title}</Text>
-        <Text style={styles.description}>
-          {bookDetails?.description?.value ??
-            bookDetails?.description ??
-            'Description Not available'}
-        </Text>
-        {bookDetails?.by_statement && (
-          <Text style={styles.description}>By {bookDetails?.by_statement}</Text>
-        )}
-        <View style={styles.detailsContainer}>
-          {bookDetails?.publish_date && (
-            <CardTextItem
-              title="Published Year"
-              value={bookDetails?.publish_date}
-            />
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <View style={styles.subContainer}>
+          <Text style={styles.title}>{bookDetails?.title}</Text>
+          <Text style={styles.description}>
+            {bookDetails?.description?.value ??
+              bookDetails?.description ??
+              'Description Not available'}
+          </Text>
+          {bookDetails?.by_statement && (
+            <Text style={styles.description}>
+              By {bookDetails?.by_statement}
+            </Text>
           )}
-          {bookDetails?.publishers && (
-            <CardTextItem
-              title="Published By"
-              value={formatAuthorNames(bookDetails?.publishers)}
-            />
-          )}
-          {bookDetails?.languages && (
-            <CardTextItem
-              title="Languages"
-              value={bookDetails?.languages.reduce(
-                (prevVal, currVal, index, array) => {
-                  return (
-                    currVal.key
-                      .substring(currVal.key.lastIndexOf('/') + 1)
-                      .toUpperCase() +
-                    (index === array.length - 2
-                      ? ' and '
-                      : index === array.length - 1
-                      ? ''
-                      : ', ') +
-                    prevVal
-                  );
-                },
-                '',
-              )}
-            />
-          )}
+          <View style={styles.detailsContainer}>
+            {bookDetails?.publish_date && (
+              <CardTextItem
+                title="Published Year"
+                value={bookDetails?.publish_date}
+              />
+            )}
+            {bookDetails?.publishers && (
+              <CardTextItem
+                title="Published By"
+                value={formatAuthorNames(bookDetails?.publishers)}
+              />
+            )}
+            {bookDetails?.languages && (
+              <CardTextItem
+                title="Languages"
+                value={bookDetails?.languages.reduce(
+                  (prevVal, currVal, index, array) => {
+                    return (
+                      currVal.key
+                        .substring(currVal.key.lastIndexOf('/') + 1)
+                        .toUpperCase() +
+                      (index === array.length - 2
+                        ? ' and '
+                        : index === array.length - 1
+                        ? ''
+                        : ', ') +
+                      prevVal
+                    );
+                  },
+                  '',
+                )}
+              />
+            )}
 
-          {bookDetails?.number_of_pages && (
-            <CardTextItem
-              title="Pages"
-              value={'' + bookDetails?.number_of_pages}
-            />
-          )}
+            {bookDetails?.number_of_pages && (
+              <CardTextItem
+                title="Pages"
+                value={'' + bookDetails?.number_of_pages}
+              />
+            )}
 
-          {bookDetails?.isbn_10 && (
-            <CardTextItem title="ISBN 10" value={'' + bookDetails?.isbn_10} />
-          )}
-          {bookDetails?.isbn_13 && (
-            <CardTextItem title="ISBN 13" value={'' + bookDetails?.isbn_13} />
-          )}
+            {bookDetails?.isbn_10 && (
+              <CardTextItem title="ISBN 10" value={'' + bookDetails?.isbn_10} />
+            )}
+            {bookDetails?.isbn_13 && (
+              <CardTextItem title="ISBN 13" value={'' + bookDetails?.isbn_13} />
+            )}
+          </View>
         </View>
-      </View>
+      )}
     </ScrollView>
   );
 };
@@ -107,6 +111,7 @@ const styles = StyleSheet.create({
     height: 250,
     marginBottom: 20,
   },
+  subContainer: {paddingHorizontal: 15},
   detailsContainer: {
     flex: 1,
     flexWrap: 'wrap',

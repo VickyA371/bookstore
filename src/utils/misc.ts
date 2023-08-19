@@ -28,3 +28,7 @@ export const formatAuthorNames = (authorNames: string[]) => {
     '',
   );
 };
+
+export const getRandomNumber = (min: number, max: number) => {
+  return Math.random() * (max - min) + min;
+};
