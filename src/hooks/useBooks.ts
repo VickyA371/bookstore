@@ -1,15 +1,20 @@
 import {useCallback, useEffect, useState} from 'react';
+import {plainToInstance} from 'class-transformer';
 import axios from 'axios';
 
 // ** Services
 import {getBooks, searchBooksService} from '../services/books';
 
 // ** Types
-import {LOG_ENTRY, SEARCH_DOC_TYPE} from '../services/books/types';
+import {
+  FETCH_BOOKS,
+  FETCH_SEARCH_BOOKS,
+  LOG_ENTRY,
+  SEARCH_DOC_TYPE,
+} from '../services/books/types';
 
 const useBooks = () => {
-  const [books, setBooks] = useState<LOG_ENTRY[]>([]);
-  const [booksFromSearch, setBooksFromSearch] = useState<SEARCH_DOC_TYPE[]>([]);
+  const [books, setBooks] = useState<LOG_ENTRY[] | SEARCH_DOC_TYPE[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -18,7 +23,11 @@ const useBooks = () => {
     try {
       const resp = await getBooks();
       setLoading(false);
-      setBooks(resp.data.reading_log_entries);
+      const arr = plainToInstance(FETCH_BOOKS, {
+        data: resp.data.reading_log_entries,
+      });
+
+      setBooks(arr.data);
     } catch (error: any) {
       setLoading(false);
       if (axios.isAxiosError(error)) {
@@ -39,7 +48,10 @@ const useBooks = () => {
       try {
         setSearchLoading(true);
         const resp = await searchBooksService(searchQuery, searchByTitle);
-        setBooksFromSearch(resp.data.docs);
+        const arr = plainToInstance(FETCH_SEARCH_BOOKS, {
+          data: resp.data.docs,
+        });
+        setBooks(arr.data);
         setSearchLoading(false);
       } catch (error: any) {
         setSearchLoading(false);
@@ -60,7 +72,6 @@ const useBooks = () => {
     loading,
     searchLoading,
     books,
-    booksFromSearch,
     searchBooks,
   };
 };

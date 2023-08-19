@@ -1,3 +1,5 @@
+import {Type} from 'class-transformer';
+
 export type LOG_ENTRY_WORK = {
   title: string;
   key: string;
@@ -10,17 +12,16 @@ export type LOG_ENTRY_WORK = {
   cover_edition_key: string;
 };
 
-export type LOG_ENTRY = {
-  work: LOG_ENTRY_WORK;
-  logged_edition: string;
-  logged_date: string;
-  type: 'get';
-};
+export class LOG_ENTRY {
+  work!: LOG_ENTRY_WORK;
+  logged_edition!: string;
+  logged_date!: string;
+}
 
-export type GET_BOOKS_RESPONSE = {
-  page: number;
-  reading_log_entries: LOG_ENTRY[];
-};
+export class GET_BOOKS_RESPONSE {
+  page!: number;
+  reading_log_entries!: LOG_ENTRY[];
+}
 
 export type KEY_TYPE = {
   key: string;
@@ -36,7 +37,7 @@ export type BOOK_DETAILS_DATE_TYPE = {
   value: string;
 };
 
-export type GET_BOOK_DETAILS_RESPONSE = {
+export interface GET_BOOK_DETAILS_RESPONSE {
   title: string;
   key: string;
   authors: BOOK_DETAILS_AUTHOR_TYPE[];
@@ -79,7 +80,7 @@ export type GET_BOOK_DETAILS_RESPONSE = {
   dewey_decimal_class?: string[];
   lc_classifications?: string[];
   local_id?: string[];
-};
+}
 
 export enum BOOK_COVER_RESOLUTION {
   small = 'S',
@@ -87,16 +88,15 @@ export enum BOOK_COVER_RESOLUTION {
   large = 'L',
 }
 
-export type SEARCH_DOC_TYPE = {
-  key: string;
-  title: string;
-  first_publish_year: number;
-  cover_i: number;
-  author_name: string[];
-  type: 'search';
-};
+export class SEARCH_DOC_TYPE {
+  key!: string;
+  title!: string;
+  first_publish_year!: number;
+  cover_i!: number;
+  author_name!: string[];
+}
 
-export type GET_SEARCH_RESULTS_RESPONSE_TYPE = {
+export interface GET_SEARCH_RESULTS_RESPONSE_TYPE {
   numFound: number;
   start: number;
   numFoundExact: boolean;
@@ -104,4 +104,14 @@ export type GET_SEARCH_RESULTS_RESPONSE_TYPE = {
   num_found: number;
   q: string;
   offset?: number;
-};
+}
+
+export class FETCH_BOOKS {
+  @Type(() => LOG_ENTRY)
+  data!: LOG_ENTRY[];
+}
+
+export class FETCH_SEARCH_BOOKS {
+  @Type(() => SEARCH_DOC_TYPE)
+  data!: SEARCH_DOC_TYPE[];
+}

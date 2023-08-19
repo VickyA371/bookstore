@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {FlatList, ListRenderItemInfo, StyleSheet} from 'react-native';
 import {NavigationProp, useNavigation} from '@react-navigation/native';
 import debounce from 'lodash.debounce';
@@ -22,7 +22,7 @@ import {keyExtractorHandler} from '../../utils/misc';
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<RootNavigationType>>();
 
-  const {books, booksFromSearch, searchLoading, searchBooks} = useBooks();
+  const {books, searchLoading, searchBooks} = useBooks();
 
   const searchBarRef = useRef<RefType>(null);
 
@@ -41,59 +41,63 @@ const HomeScreen = () => {
     [debouncedSave],
   );
 
-  const onBookItemPressHandler = (coverId: string) => {
-    navigation.navigate('bookDetails', {
-      coverId,
-    });
-  };
+  const onBookItemPressHandler = useCallback(
+    (coverId: string) => {
+      searchBarRef.current?.blur?.();
+      navigation.navigate('bookDetails', {
+        coverId,
+      });
+    },
+    [navigation],
+  );
 
-  const renderBookItemHandler = (
-    searchDataLen: number,
-    bookItemObj: ListRenderItemInfo<LOG_ENTRY | SEARCH_DOC_TYPE>,
-  ) => {
-    try {
-      return (
-        <BookItemRow
-          coverId={
-            searchDataLen
-              ? bookItemObj.item.cover_i
-              : bookItemObj.item.work.cover_id
-          }
-          title={
-            searchDataLen
-              ? bookItemObj.item.title
-              : bookItemObj.item.work.title
-          }
-          authorNames={
-            searchDataLen
-              ? bookItemObj.item.author_name
-              : bookItemObj.item.work.author_names
-          }
-          publishYear={
-            searchDataLen
-              ? bookItemObj.item.first_publish_year
-              : bookItemObj.item.work.first_publish_year
-          }
-          onPress={onBookItemPressHandler.bind(
-            null,
-            searchDataLen
-              ? bookItemObj.item.key.substring(
-                  bookItemObj.item.key.lastIndexOf('/') + 1,
-                )
-              : bookItemObj.item.work.cover_edition_key,
-          )}
-        />
-      );
-    } catch (err: any) {
-      console.log(
-        '[HomeScreen - renderBookItemHandler] Error : ',
-        err?.message,
-      );
-      return null;
-    }
-  };
+  const renderBookItemHandler = useCallback(
+    (bookItemObj: ListRenderItemInfo<LOG_ENTRY | SEARCH_DOC_TYPE>) => {
+      try {
+        return (
+          <BookItemRow
+            coverId={
+              bookItemObj.item instanceof LOG_ENTRY
+                ? bookItemObj.item.work.cover_id
+                : bookItemObj.item.cover_i
+            }
+            title={
+              bookItemObj.item instanceof LOG_ENTRY
+                ? bookItemObj.item.work.title
+                : bookItemObj.item.title
+            }
+            authorNames={
+              bookItemObj.item instanceof LOG_ENTRY
+                ? bookItemObj.item.work.author_names
+                : bookItemObj.item.author_name
+            }
+            publishYear={
+              bookItemObj.item instanceof LOG_ENTRY
+                ? bookItemObj.item.work.first_publish_year
+                : bookItemObj.item.first_publish_year
+            }
+            onPress={onBookItemPressHandler.bind(
+              null,
+              bookItemObj.item instanceof LOG_ENTRY
+                ? bookItemObj.item.work.cover_edition_key
+                : bookItemObj.item.key.substring(
+                    bookItemObj.item.key.lastIndexOf('/') + 1,
+                  ),
+            )}
+          />
+        );
+      } catch (err: any) {
+        console.log(
+          '[HomeScreen - renderBookItemHandler] Error : ',
+          err?.message,
+        );
+        return null;
+      }
+    },
+    [onBookItemPressHandler],
+  );
 
-  const renderListEmptyComponent = () => <Loader />;
+  const renderListEmptyComponent = useCallback(() => <Loader />, []);
 
   useEffect(() => {
     searchBarRef.current?.setLoading(searchLoading);
@@ -103,15 +107,10 @@ const HomeScreen = () => {
     return <SearchBar key="search" ref={searchBarRef} onUpdate={onSearch} />;
   }, [onSearch]);
 
-  const data = useMemo(
-    () => (booksFromSearch.length ? booksFromSearch : books),
-    [books, booksFromSearch],
-  );
-
   return (
     <FlatList<LOG_ENTRY | SEARCH_DOC_TYPE>
-      data={data}
-      renderItem={renderBookItemHandler.bind(null, booksFromSearch.length)}
+      data={books}
+      renderItem={renderBookItemHandler}
       keyExtractor={keyExtractorHandler}
       style={styles.listStyle}
       contentContainerStyle={styles.contentContainer}

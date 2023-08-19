@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -26,6 +27,7 @@ export type RefType = {
   loading?: boolean;
   searchByTitle: boolean;
   setLoading: (loading: boolean) => void;
+  blur?: () => void;
 };
 
 const SearchBar = forwardRef(
@@ -34,6 +36,8 @@ const SearchBar = forwardRef(
     ref: React.ForwardedRef<RefType>,
   ) => {
     const {initialSearchValue, onUpdate} = props;
+
+    const baseInputRef = useRef<TextInput>(null);
 
     const [isLoading, setLoading] = useState(true);
 
@@ -46,6 +50,9 @@ const SearchBar = forwardRef(
         searchByTitle,
         setLoading: (loadingState: boolean) => {
           setLoading(loadingState);
+        },
+        blur: () => {
+          baseInputRef.current?.blur();
         },
       }),
       [searchByTitle, searchVal],
@@ -69,6 +76,7 @@ const SearchBar = forwardRef(
     return (
       <View style={styles.container}>
         <TextInput
+          ref={baseInputRef}
           key="input"
           placeholder="Search Book"
           returnKeyType="search"

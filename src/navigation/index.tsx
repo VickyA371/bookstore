@@ -5,7 +5,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 // ** Screens
 import HomeScreen from '../screens/HomeScreen';
 import BookDetailsScreen from '../screens/BookDetailsScreen';
-import SearchScreen from '../screens/SearchBooks';
 
 // ** MISC
 import {RootNavigationType} from './types';
@@ -28,13 +27,6 @@ const RootNavigation = () => {
           component={BookDetailsScreen}
           options={{
             title: 'Book Details',
-          }}
-        />
-        <Stack.Screen
-          name={'search'}
-          component={SearchScreen}
-          options={{
-            title: 'Search',
           }}
         />
       </Stack.Navigator>
